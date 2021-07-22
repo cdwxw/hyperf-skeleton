@@ -168,7 +168,7 @@ services:
       - net_back_prod
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
   visualizer_prod:
     image: dockersamples/visualizer:stable
     # image: 192.168.205.10:5000/visualizer:stable
@@ -179,7 +179,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
 networks:
   net_front_prod:
   net_back_prod:
