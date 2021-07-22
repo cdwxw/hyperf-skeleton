@@ -20,7 +20,7 @@ else
 fi
 volume_root=$volume_api/deploy
 echo "挂载根路径... $volume_root"
-mkdir -p $volume_root
+# mkdir -p $volume_root
 if [ ! -d  $volume_root  ]
 then
     echo "挂载根路径不存在... $volume_root"
@@ -35,7 +35,8 @@ cd $volume_api
 #### nginx镜像处理 start ####
 service_nginx=nginx_prod
 volume_nginx=$volume_root/$service_nginx
-mkdir -p $volume_nginx
+mkdir -p $volume_nginx/log
+mkdir -p $volume_nginx/dist
 echo "nginx镜像处理... $volume_nginx"
 #### nginx镜像处理 end ####
 
@@ -149,7 +150,7 @@ services:
       - net_back_prod
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
   phpredisadmin_prod:
     image: erikdubbelboer/phpredisadmin:v1.13.2
     # image: 192.168.205.10:5000/phpredisadmin:v1.13.2
@@ -164,7 +165,7 @@ services:
       - net_back_prod
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
   visualizer_prod:
     image: dockersamples/visualizer:stable
     # image: 192.168.205.10:5000/visualizer:stable
