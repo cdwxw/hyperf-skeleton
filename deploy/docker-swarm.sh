@@ -39,8 +39,8 @@ mkdir -p $volume_nginx/log
 mkdir -p $volume_nginx/dist
 echo "nginx镜像处理... $volume_nginx"
 cd $volume_nginx
-docker build -t 569529989/$service_nginx:1.19.2 .
-docker push 569529989/$service_nginx:1.19.2
+# docker build -t 569529989/$service_nginx:1.19.2 .
+# docker push 569529989/$service_nginx:1.19.2
 #### nginx镜像处理 end ####
 
 #### mysql镜像处理 start ####
@@ -96,7 +96,7 @@ services:
       - net_back_prod
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
       placement:
         constraints:
           - "node.role==manager"
