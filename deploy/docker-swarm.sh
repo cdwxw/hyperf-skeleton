@@ -38,6 +38,9 @@ volume_nginx=$volume_root/$service_nginx
 mkdir -p $volume_nginx/log
 mkdir -p $volume_nginx/dist
 echo "nginx镜像处理... $volume_nginx"
+cd $volume_nginx
+docker build -t 569529989/$service_nginx:1.19.2 .
+docker push 569529989/$service_nginx:1.19.2
 #### nginx镜像处理 end ####
 
 #### mysql镜像处理 start ####
@@ -58,34 +61,48 @@ echo "redis镜像处理... $volume_redis"
 #### 部署swarm集群 start ####
 echo "编写docker-compose.yml ..."
 cd $volume_root
-cat << EOF > $volume_root/docker-compose.yml
+cat << EOF > $volume_root/stack.yml
 version: "3.9"
 services:
+  $service_api:
+    image: 569529989/$service_api:latest
+    # image: 192.168.205.10:5000/hyperf:latest
+    ports:
+      - 9501:9501
+    depends_on:
+      - $service_mysql
+      - $service_redis
+    entrypoint: ["php", "/opt/www/bin/hyperf.php", "start"]
+    networks:
+      - net_back_prod
+    deploy:
+      mode: replicated
+      replicas: 2
   $service_nginx:
-    image: nginx:1.16.1
-    # image: 192.168.205.10:5000/nginx:1.16.1
+    image: 569529989/$service_nginx:1.19.2
+    # image: 192.168.205.10:5000/nginx:1.19.2
     ports:
       - 80:80
       - 28888:28888
       - 29999:29999
       - 28080:28080
       - 29501:29501
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - $volume_nginx/nginx.conf:/etc/nginx/nginx.conf
-      - $volume_nginx/log:/var/log/nginx
-      - $volume_nginx/dist:/usr/share/nginx/html:ro
+    # volumes:
+      # - /etc/localtime:/etc/localtime:ro
+      # - $volume_nginx/nginx.conf:/etc/nginx/nginx.conf
+      # - $volume_nginx/log:/var/log/nginx
+      # - $volume_nginx/dist:/usr/share/nginx/html:ro
     networks:
       - net_back_prod
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
       placement:
         constraints:
           - "node.role==manager"
   $service_mysql:
-    image: mysql:5.7.22
-    # image: 192.168.205.10:5000/mysql:5.7.22
+    image: mysql:5.7
+    # image: 192.168.205.10:5000/mysql:5.7
     ports:
       - 3306:3306
     # volumes:
@@ -125,20 +142,6 @@ services:
       placement:
         constraints:
           - "node.hostname==swarm-manager"
-  $service_api:
-    image: 569529989/$service_api:latest
-    # image: 192.168.205.10:5000/hyperf:latest
-    ports:
-      - 9501:9501
-    depends_on:
-      - $service_mysql
-      - $service_redis
-    entrypoint: ["php", "/opt/www/bin/hyperf.php", "start"]
-    networks:
-      - net_back_prod
-    deploy:
-      mode: replicated
-      replicas: 2
   phpmyadmin_prod:
     image: phpmyadmin:5.0.2
     # image: 192.168.205.10:5000/phpmyadmin:5.0.2
@@ -176,7 +179,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
 networks:
   net_front_prod:
   net_back_prod:
@@ -184,7 +187,7 @@ EOF
 
 echo "部署swarm集群 ..."
 docker node ls
-docker stack deploy $namepsace -c=docker-compose.yml
+docker stack deploy $namepsace -c stack.yml
 echo "docker service ls"
 docker service ls
 echo "docker stack ps $namepsace"
