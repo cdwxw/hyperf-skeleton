@@ -53,7 +53,6 @@ service_mysql_slave=mysql_slave_prod
 volume_mysql_slave=$volume_root/$service_mysql_slave
 mkdir -p $volume_mysql_slave
 echo "mysql镜像处理... $volume_mysql_master"
-# chmod 755 $volume_mysql_master/mysqld.cnf
 #### mysql镜像处理 end ####
 
 #### redis镜像处理 start ####
@@ -111,9 +110,10 @@ services:
     # image: 192.168.205.10:5000/mysql:5.7
     ports:
       - 33061:3306
-    # volumes:
-      # - $volume_mysql_master/mysql:/var/lib/mysql
+    volumes:
+      - $volume_mysql_master/my.cnf:/etc/mysql/my.cnf
       # - $volume_mysql_master/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      # - $volume_mysql_master/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: mysql!@#MYSQL
       MYSQL_DATABASE: cntz_big_screen
@@ -132,9 +132,10 @@ services:
     # image: 192.168.205.10:5000/mysql:5.7
     ports:
       - 33062:3306
-    # volumes:
-      # - $volume_mysql_slave/mysql:/var/lib/mysql
+    volumes:
+      - $volume_mysql_slave/my.cnf:/etc/mysql/my.cnf
       # - $volume_mysql_slave/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      # - $volume_mysql_slave/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: mysql!@#MYSQL
       MYSQL_DATABASE: cntz_big_screen
