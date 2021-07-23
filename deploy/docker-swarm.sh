@@ -28,6 +28,7 @@ then
 fi
 echo "api镜像处理... $volume_api"
 cd $volume_api
+# 镜像需要重新build请打开以下注释
 # docker build -t 569529989/$service_api:latest .
 # docker push 569529989/$service_api:latest
 #### api镜像处理 end ####
@@ -39,16 +40,20 @@ mkdir -p $volume_nginx/log
 mkdir -p $volume_nginx/dist
 echo "nginx镜像处理... $volume_nginx"
 cd $volume_nginx
-# docker build -t 569529989/$service_nginx:1.19.2 .
-# docker push 569529989/$service_nginx:1.19.2
+# 镜像需要重新build请打开以下注释
+docker build -t 569529989/$service_nginx:1.19.2 .
+docker push 569529989/$service_nginx:1.19.2
 #### nginx镜像处理 end ####
 
 #### mysql镜像处理 start ####
-service_mysql=mysql_master_prod
-volume_mysql=$volume_root/$service_mysql
-mkdir -p $volume_mysql
-echo "mysql镜像处理... $volume_mysql"
-# chmod 755 $volume_mysql/mysqld.cnf
+service_mysql_master=mysql_master_prod
+volume_mysql_master=$volume_root/$service_mysql_master
+mkdir -p $volume_mysql_master
+service_mysql_slave=mysql_slave_prod
+volume_mysql_slave=$volume_root/$service_mysql_slave
+mkdir -p $volume_mysql_slave
+echo "mysql镜像处理... $volume_mysql_master"
+# chmod 755 $volume_mysql_master/mysqld.cnf
 #### mysql镜像处理 end ####
 
 #### redis镜像处理 start ####
@@ -70,7 +75,7 @@ services:
     ports:
       - 9501:9501
     depends_on:
-      - $service_mysql
+      - $service_mysql_master
       - $service_redis
     entrypoint: ["php", "/opt/www/bin/hyperf.php", "start"]
     networks:
@@ -100,14 +105,14 @@ services:
       placement:
         constraints:
           - "node.role==manager"
-  $service_mysql:
+  $service_mysql_master:
     image: mysql:5.7
     # image: 192.168.205.10:5000/mysql:5.7
     ports:
-      - 3306:3306
+      - 33061:3306
     # volumes:
-      # - $volume_mysql/mysql:/var/lib/mysql
-      # - $volume_mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      # - $volume_mysql_master/mysql:/var/lib/mysql
+      # - $volume_mysql_master/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
     environment:
       MYSQL_ROOT_PASSWORD: mysql!@#MYSQL
       MYSQL_DATABASE: cntz_big_screen
@@ -120,7 +125,28 @@ services:
       replicas: 1
       placement:
         constraints:
-          - "node.hostname==swarm-manager"
+          - "node.hostname==swarm-worker1"
+  $service_mysql_slave:
+    image: mysql:5.7
+    # image: 192.168.205.10:5000/mysql:5.7
+    ports:
+      - 33062:3306
+    # volumes:
+      # - $volume_mysql_slave/mysql:/var/lib/mysql
+      # - $volume_mysql_slave/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql!@#MYSQL
+      MYSQL_DATABASE: cntz_big_screen
+      MYSQL_USER: yxkj
+      MYSQL_PASSWORD: 123qwe!@#
+    networks:
+      - net_back_prod
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - "node.hostname==swarm-worker2"
   $service_redis:
     image: redis:6.2.2
     # image: 192.168.205.10:5000/redis:6.2.2
@@ -148,7 +174,7 @@ services:
     ports:
       - 8888:80
     environment:
-      - PMA_HOST=$service_mysql
+      - PMA_HOST=$service_mysql_master
     networks:
       - net_back_prod
     deploy:
