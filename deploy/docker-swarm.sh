@@ -79,7 +79,7 @@ services:
       - $service_redis
     entrypoint: ["php", "/opt/www/bin/hyperf.php", "start"]
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 2
@@ -88,6 +88,7 @@ services:
     # image: 192.168.205.10:5000/nginx:1.19.2
     ports:
       - 80:80
+      - 33060:33060
       - 28888:28888
       - 29999:29999
       - 28080:28080
@@ -98,7 +99,7 @@ services:
       # - $volume_nginx/log:/var/log/nginx
       # - $volume_nginx/dist:/usr/share/nginx/html:ro
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 2
@@ -119,7 +120,7 @@ services:
       MYSQL_USER: yxkj
       MYSQL_PASSWORD: 123qwe!@#
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 1
@@ -140,7 +141,7 @@ services:
       MYSQL_USER: yxkj
       MYSQL_PASSWORD: 123qwe!@#
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 1
@@ -161,7 +162,7 @@ services:
       - TZ=Asia/Shanghai
       - LANG=en_US.UTF-8
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 1
@@ -177,7 +178,7 @@ services:
       - PMA_HOST=$service_nginx
       - PMA_PORT=33060
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 1
@@ -192,7 +193,7 @@ services:
       - ADMIN_USER=yxkj
       - ADMIN_PASS=123qwe!@#
     networks:
-      - net_back_prod
+      - net_swarm_prod
     deploy:
       mode: replicated
       replicas: 2
@@ -208,8 +209,8 @@ services:
       mode: replicated
       replicas: 2
 networks:
-  net_front_prod:
-  net_back_prod:
+  net_swarm_prod:
+    driver: overlay
 EOF
 
 echo "部署swarm集群 ..."
