@@ -41,8 +41,8 @@ mkdir -p $volume_nginx/dist
 echo "nginx镜像处理... $volume_nginx"
 cd $volume_nginx
 # 镜像需要重新build请打开以下注释
-docker build -t 569529989/$service_nginx:1.19.2 .
-docker push 569529989/$service_nginx:1.19.2
+# docker build -t 569529989/$service_nginx:1.19.2 .
+# docker push 569529989/$service_nginx:1.19.2
 #### nginx镜像处理 end ####
 
 #### mysql镜像处理 start ####
@@ -174,7 +174,8 @@ services:
     ports:
       - 8888:80
     environment:
-      - PMA_HOST=$service_mysql_master
+      - PMA_HOST=$service_nginx
+      - PMA_PORT=33060
     networks:
       - net_back_prod
     deploy:
